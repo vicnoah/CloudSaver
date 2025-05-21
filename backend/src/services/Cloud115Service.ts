@@ -1,6 +1,6 @@
 import { AxiosHeaders, AxiosInstance } from "axios"; // 导入 AxiosHeaders
 import { createAxiosInstance } from "../utils/axiosInstance";
-import { ShareInfoResponse, FolderListResponse, SaveFileParams } from "../types/cloud";
+import { ShareInfoResponse, FolderListResponse, SaveFileParams, SaveFileResult, RenameFileResult } from "../types/cloud";
 import { injectable } from "inversify";
 import { Request } from "express";
 import UserSetting from "../models/UserSetting";
@@ -125,23 +125,90 @@ export class Cloud115Service implements ICloudStorageService {
     }
   }
 
-  async saveSharedFile(params: SaveFileParams): Promise<{ message: string; data: unknown }> {
+  async saveSharedFile(params: SaveFileParams): Promise<SaveFileResult> {
     const param = new URLSearchParams({
       cid: params.folderId || "",
       share_code: params.shareCode || "",
       receive_code: params.receiveCode || "",
       file_id: params.fids?.[0] || "",
     });
-    const response = await this.api.post("/share/receive", param.toString());
-    logger.info("保存文件:", response.data);
-    if (response.data.state) {
+    try {
+      const response = await this.api.post("/share/receive", param.toString());
+      logger.info("保存文件:", response.data);
+      if (response.data.state) {
+        let finalMessage = response.data.error || "文件保存成功";
+        let saveSuccess = true;
+
+        // SPECULATIVE: Extract new file ID and name from response.
+        // Actual fields in response.data.data for the new file's ID and name are unknown for 115's /share/receive.
+        // These are placeholders. If these details aren't in the response, renaming accurately is not possible
+        // without further API calls to find the file.
+        const savedFileId = response.data.data?.new_cid || response.data.data?.cid || params.fids?.[0]; // Example placeholder for file ID
+        const currentName = response.data.data?.new_name || response.data.data?.name; // Example placeholder for file name
+
+        // Store initial save details, especially if fileId or actualFileName can be confirmed from response.data.data
+        let resultFileId = savedFileId; // Or a more confirmed ID from response.data.data
+        let resultActualFileName = currentName; // Or a more confirmed name
+
+        if (params.targetFileName && savedFileId) {
+          if (currentName && params.targetFileName.trim() === currentName.trim()) {
+            logger.info(`Cloud115: Target name "${params.targetFileName}" is same as current name "${currentName}". Skipping rename.`);
+            finalMessage += `. Filename is already as requested: ${currentName}`;
+          } else if (!currentName) {
+            logger.warn(`Cloud115: Current name for file ${savedFileId} could not be determined. Proceeding with rename attempt to ${params.targetFileName}.`);
+            const renameResult = await this.renameFile(savedFileId, params.targetFileName, params.folderId);
+            if (renameResult.success) {
+              finalMessage += `. Successfully renamed to ${params.targetFileName}`;
+              resultActualFileName = params.targetFileName;
+            } else {
+              finalMessage += `. Failed to rename: ${renameResult.message}`;
+            }
+          } else { // currentName is known and different
+            logger.info(`Cloud115: Attempting to rename file ${savedFileId} (current: "${currentName}") to ${params.targetFileName}`);
+            const renameResult = await this.renameFile(savedFileId, params.targetFileName, params.folderId);
+            if (renameResult.success) {
+              finalMessage += `. Successfully renamed to ${params.targetFileName}`;
+              resultActualFileName = params.targetFileName;
+            } else {
+              finalMessage += `. Failed to rename: ${renameResult.message}`;
+            }
+          }
+        } else if (params.targetFileName) {
+          logger.warn("Cloud115: targetFileName provided, but could not determine savedFileId. Skipping rename.");
+          finalMessage += ". Could not rename: missing file ID from save response.";
+        }
+
+        return {
+          success: saveSuccess,
+          message: finalMessage,
+          data: response.data.data,
+          fileId: resultFileId, // Populate with the determined file ID
+          actualFileName: resultActualFileName, // Populate with the determined actual file name
+        };
+      } else {
+        logger.error("保存文件失败:", response.data.error);
+        return {
+          success: false,
+          message: "保存115pan文件失败:" + response.data.error,
+          data: response.data.data,
+        };
+      }
+    } catch (error) {
+      logger.error("保存115pan文件请求异常:", error);
+      // Ensure even network or unexpected errors return SaveFileResult
+      const errorMessage = error instanceof Error ? error.message : "未知错误";
       return {
-        message: response.data.error,
-        data: response.data.data,
+        success: false,
+        message: "保存115pan文件请求异常: " + errorMessage,
       };
-    } else {
-      logger.error("保存文件失败:", response.data.error);
-      throw new Error("保存115pan文件失败:" + response.data.error);
     }
+  }
+
+  async renameFile(fileId: string, targetFileName: string, folderId?: string): Promise<RenameFileResult> {
+    logger.warn(`renameFile called for 115 service (fileId: ${fileId}, targetName: ${targetFileName}, folderId: ${folderId}), but it is not yet implemented.`);
+    return {
+      success: false,
+      message: "File renaming for 115 service is not yet implemented.",
+    };
   }
 }

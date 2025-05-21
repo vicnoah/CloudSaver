@@ -9,6 +9,8 @@ import {
   FolderListResponse,
   QuarkFolderItem,
   SaveFileParams,
+  SaveFileResult,
+  RenameFileResult,
 } from "../types/cloud";
 import { ICloudStorageService } from "@/types/services";
 
@@ -160,28 +162,90 @@ export class QuarkService implements ICloudStorageService {
     }
   }
 
-  async saveSharedFile(params: SaveFileParams): Promise<{ message: string; data: unknown }> {
+  async saveSharedFile(params: SaveFileParams): Promise<SaveFileResult> {
     const quarkParams = {
       fid_list: params.fids,
       fid_token_list: params.fidTokens,
       to_pdir_fid: params.folderId,
       pwd_id: params.shareCode,
-      stoken: params.receiveCode,
-      pdir_fid: "0",
-      scene: "link",
+      stoken: params.receiveCode, // Assuming receiveCode for Quark is stoken
+      pdir_fid: "0", // Default or make configurable if needed
+      scene: "link", // Default or make configurable if needed
     };
+
     try {
       const response = await this.api.post(
         `/1/clouddrive/share/sharepage/save?pr=ucpro&fr=pc&uc_param_str=&__dt=208097&__t=${Date.now()}`,
         quarkParams
       );
 
+      // Assuming a successful HTTP call means the operation was accepted by Quark.
+      // Quark API success is usually indicated by HTTP status 200 and specific fields in response.data
+      // response.data.message seems to be the primary indicator from the original code.
+      let finalMessage = response.data.message || "文件已成功提交保存";
+      let saveSuccess = true; // Assuming the api call itself implies save initiation success
+
+      // SPECULATIVE: Extract new file ID and name from Quark's response.
+      // Actual fields in response.data.data for the new file's ID and name are unknown.
+      // These are placeholders. `params.fids[0]` is the ID of the file *being shared*.
+      // We need the ID of the file *after* it's saved to the user's drive.
+      const savedFileId = response.data.data?.fid || response.data.data?.new_fid || response.data.data?.file_info_list?.[0]?.fid; // Example placeholder
+      const currentName = response.data.data?.file_name || response.data.data?.new_name || response.data.data?.file_info_list?.[0]?.file_name; // Example placeholder
+
+      let resultFileId = savedFileId; 
+      let resultActualFileName = currentName;
+
+      if (params.targetFileName && savedFileId) {
+        if (currentName && params.targetFileName.trim() === currentName.trim()) {
+          logger.info(`Quark: Target name "${params.targetFileName}" is same as current name "${currentName}". Skipping rename.`);
+          finalMessage += `. Filename is already as requested: ${currentName}`;
+        } else if (!currentName) {
+          logger.warn(`Quark: Current name for file ${savedFileId} could not be determined. Proceeding with rename attempt to ${params.targetFileName}.`);
+          const renameResult = await this.renameFile(savedFileId, params.targetFileName, params.folderId);
+          if (renameResult.success) {
+            finalMessage += `. Successfully renamed to ${params.targetFileName}`;
+            resultActualFileName = params.targetFileName;
+          } else {
+            finalMessage += `. Failed to rename: ${renameResult.message}`;
+          }
+        } else { // currentName is known and different
+          logger.info(`Quark: Attempting to rename file ${savedFileId} (current: "${currentName}") to ${params.targetFileName}`);
+          const renameResult = await this.renameFile(savedFileId, params.targetFileName, params.folderId);
+          if (renameResult.success) {
+            finalMessage += `. Successfully renamed to ${params.targetFileName}`;
+            resultActualFileName = params.targetFileName;
+          } else {
+            finalMessage += `. Failed to rename: ${renameResult.message}`;
+          }
+        }
+      } else if (params.targetFileName) {
+        logger.warn("Quark: targetFileName provided, but could not determine savedFileId from response. Skipping rename.");
+        finalMessage += ". Could not rename: missing file ID from save response.";
+      }
+
       return {
-        message: response.data.message,
+        success: saveSuccess,
+        message: finalMessage,
         data: response.data.data,
+        fileId: resultFileId,
+        actualFileName: resultActualFileName,
       };
-    } catch (error) {
-      throw new Error(error instanceof Error ? error.message : "未知错误");
+    } catch (error: any) { // Catch block to handle axios errors or other exceptions
+      logger.error("保存Quark文件请求异常:", error);
+      const errorMessage = error.response?.data?.message || (error instanceof Error ? error.message : "未知错误");
+      return {
+        success: false,
+        message: "保存Quark文件请求失败: " + errorMessage,
+        data: error.response?.data?.data,
+      };
     }
+  }
+
+  async renameFile(fileId: string, targetFileName: string, folderId?: string): Promise<RenameFileResult> {
+    logger.warn(`renameFile called for Quark service (fileId: ${fileId}, targetName: ${targetFileName}, folderId: ${folderId}), but it is not yet implemented.`);
+    return {
+      success: false,
+      message: "File renaming for Quark service is not yet implemented.",
+    };
   }
 }

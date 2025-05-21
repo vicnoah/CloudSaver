@@ -32,11 +32,25 @@ export interface SaveFileParams {
   folderId?: string; // 文件夹id
   fids?: string[]; // 存储文件id
   fidTokens?: string[]; // 存储文件token
+  targetFileName?: string; // The desired filename from Telegram info
 }
 
 export interface SaveFileResponse {
   message: string;
   data: unknown;
+}
+
+export interface SaveFileResult {
+  success: boolean;
+  message: string;
+  fileId?: string;       // ID of the file in the cloud
+  actualFileName?: string; // Actual name of the file as saved in the cloud
+  data?: any;            // Original data from the cloud provider if needed
+}
+
+export interface RenameFileResult {
+  success: boolean;
+  message: string;
 }
 
 export interface ShareFileInfo {
