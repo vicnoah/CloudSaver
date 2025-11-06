@@ -1,8 +1,16 @@
-import axios, { AxiosInstance, AxiosError } from 'axios'
+import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { useUserStore } from '@/stores/user'
 import type { ApiResponse } from '@/types/api'
 
-const apiClient: AxiosInstance = axios.create({
+// 创建自定义 axios 实例类型
+interface CustomAxiosInstance extends AxiosInstance {
+  get<T = any>(url: string, config?): Promise<T>
+  post<T = any>(url: string, data?, config?): Promise<T>
+  put<T = any>(url: string, data?, config?): Promise<T>
+  delete<T = any>(url: string, config?): Promise<T>
+}
+
+const apiClient = axios.create({
   baseURL: '/api',
   timeout: 30000,
   headers: {
@@ -12,7 +20,7 @@ const apiClient: AxiosInstance = axios.create({
 
 // 请求拦截器
 apiClient.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const userStore = useUserStore()
     if (userStore.token) {
       config.headers.Authorization = `Bearer ${userStore.token}`
@@ -44,4 +52,4 @@ apiClient.interceptors.response.use(
   }
 )
 
-export default apiClient
+export default apiClient as CustomAxiosInstance
