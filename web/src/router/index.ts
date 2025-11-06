@@ -32,13 +32,30 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const userStore = useUserStore()
   
-  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
-    next({ name: 'Login', query: { redirect: to.fullPath } })
-  } else if (to.name === 'Login' && userStore.isLoggedIn) {
-    next({ name: 'Home' })
-  } else {
-    next()
+  // 如果目标路由是登录页
+  if (to.name === 'Login') {
+    // 如果已登录，重定向到首页
+    if (userStore.isLoggedIn) {
+      next({ name: 'Home' })
+    } else {
+      next()
+    }
+    return
   }
+  
+  // 如果目标路由需要认证
+  if (to.meta.requiresAuth) {
+    if (!userStore.isLoggedIn) {
+      // 未登录，重定向到登录页
+      next({ name: 'Login', query: { redirect: to.fullPath } })
+    } else {
+      next()
+    }
+    return
+  }
+  
+  // 其他情况直接放行
+  next()
 })
 
 export default router
