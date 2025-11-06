@@ -1,13 +1,13 @@
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosRequestConfig } from 'axios'
 import { useUserStore } from '@/stores/user'
 import type { ApiResponse } from '@/types/api'
 
 // 创建自定义 axios 实例类型
 interface CustomAxiosInstance extends AxiosInstance {
-  get<T = any>(url: string, config?): Promise<T>
-  post<T = any>(url: string, data?, config?): Promise<T>
-  put<T = any>(url: string, data?, config?): Promise<T>
-  delete<T = any>(url: string, config?): Promise<T>
+  get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>
+  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
+  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
+  delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>
 }
 
 const apiClient = axios.create({
