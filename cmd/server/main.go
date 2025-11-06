@@ -63,6 +63,7 @@ func main() {
 	quarkHandler := handler.NewQuarkHandler(quarkService)
 	searchHandler := handler.NewSearchHandler(searchService)
 	doubanHandler := handler.NewDoubanHandler(doubanService)
+	imageHandler := handler.NewImageHandler()
 
 	// 设置Gin模式
 	gin.SetMode(cfg.Server.Mode)
@@ -81,6 +82,9 @@ func main() {
 		// 用户路由（无需认证）
 		api.POST("/user/login", userHandler.Login)
 		api.POST("/user/register", userHandler.Register)
+
+		// 图片代理路由（无需认证）
+		api.GET("/image/proxy", imageHandler.ProxyImage)
 
 		// 需要认证的路由
 		auth := api.Group("")

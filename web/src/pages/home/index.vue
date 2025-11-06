@@ -92,7 +92,7 @@
                 class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
               >
                 <div class="flex gap-4">
-                  <img 
+                  <ProxyImage 
                     v-if="item.image"
                     :src="item.image"
                     class="w-24 h-24 object-cover rounded"
@@ -167,7 +167,7 @@
             class="card p-0 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
             @click="openDoubanLink(item.url)"
           >
-            <img :src="item.cover" class="w-full h-64 object-cover" :alt="item.title" />
+            <ProxyImage :src="item.cover" class="w-full h-64 object-cover" :alt="item.title" />
             <div class="p-3">
               <h3 class="font-bold text-sm mb-1 truncate" :title="item.title">{{ item.title }}</h3>
               <div class="flex items-center justify-between">
@@ -297,6 +297,7 @@ import { cloud115Api } from '@/api/modules/cloud115'
 import { quarkApi } from '@/api/modules/quark'
 import { searchApi } from '@/api/modules/search'
 import { doubanApi } from '@/api/modules/douban'
+import ProxyImage from '@/components/common/ProxyImage.vue'
 import type { ShareInfoResponse, FolderItem } from '@/types/api'
 
 const router = useRouter()
