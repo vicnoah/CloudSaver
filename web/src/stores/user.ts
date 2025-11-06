@@ -7,7 +7,8 @@ export const useUserStore = defineStore('user', () => {
   const token = ref<string>('')
   const userInfo = ref<UserInfo | null>(null)
   
-  const isLoggedIn = computed(() => !!token.value)
+  // 修复：确保 token 不是空字符串
+  const isLoggedIn = computed(() => !!token.value && token.value.length > 0)
   const isAdmin = computed(() => userInfo.value?.role === 1)
   
   async function login(params: LoginParams) {

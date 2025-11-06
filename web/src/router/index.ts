@@ -29,17 +29,23 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
+  
+  // 防止循环重定向：如果 from 和 to 是同一个路由，直接放行
+  if (from.name === to.name && from.path === to.path) {
+    next()
+    return
+  }
   
   // 如果目标路由是登录页
   if (to.name === 'Login') {
-    // 如果已登录，重定向到首页
-    if (userStore.isLoggedIn) {
-      next({ name: 'Home' })
-    } else {
-      next()
+    // 如果已登录且不是从首页跳转过来的，重定向到首页
+    if (userStore.isLoggedIn && from.name !== 'Home') {
+      next({ name: 'Home', replace: true })
+      return
     }
+    next()
     return
   }
   
@@ -47,10 +53,10 @@ router.beforeEach((to, _from, next) => {
   if (to.meta.requiresAuth) {
     if (!userStore.isLoggedIn) {
       // 未登录，重定向到登录页
-      next({ name: 'Login', query: { redirect: to.fullPath } })
-    } else {
-      next()
+      next({ name: 'Login', query: { redirect: to.fullPath }, replace: true })
+      return
     }
+    next()
     return
   }
   
