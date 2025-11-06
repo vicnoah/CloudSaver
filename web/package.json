@@ -1,0 +1,30 @@
+{
+  "name": "cloudsaver-web",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "pinia": "^2.1.7",
+    "pinia-plugin-persistedstate": "^3.2.1",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@iconify-json/carbon": "^1.1.31",
+    "@iconify-json/mdi": "^1.1.64",
+    "@types/node": "^20.11.25",
+    "@unocss/preset-attributify": "^0.58.5",
+    "@unocss/preset-icons": "^0.58.5",
+    "@unocss/preset-uno": "^0.58.5",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "typescript": "^5.4.2",
+    "unocss": "^0.58.5",
+    "vite": "^5.1.5",
+    "vue-tsc": "^2.0.6"
+  }
+}
