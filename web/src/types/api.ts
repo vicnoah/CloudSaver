@@ -60,8 +60,26 @@ export interface FolderListResponse {
   folders: FolderItem[]
 }
 
-export interface SaveFileParams {
+// 115 网盘保存参数
+export interface Save115FileParams {
   shareCode: string
+  passcode?: string
+  folderId: string
+  fileIds: string[]
+}
+
+// 夸克网盘保存参数
+export interface SaveQuarkFileParams {
+  folderId: string
+  fileIds: string[]
+  fileTokens?: string[]
+  pwdId?: string
+  stoken?: string
+}
+
+// 通用保存参数（兼容旧代码）
+export interface SaveFileParams {
+  shareCode?: string
   passcode?: string
   folderId: string
   fileIds: string[]

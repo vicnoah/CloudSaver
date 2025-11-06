@@ -297,7 +297,7 @@ import { cloud115Api } from '@/api/modules/cloud115'
 import { quarkApi } from '@/api/modules/quark'
 import { searchApi } from '@/api/modules/search'
 import { doubanApi } from '@/api/modules/douban'
-import type { ShareInfoResponse, FolderItem } from '@/types/api'
+import type { ShareInfoResponse, FolderItem, Save115FileParams, SaveQuarkFileParams } from '@/types/api'
 
 const router = useRouter()
 const userStore = useUserStore()

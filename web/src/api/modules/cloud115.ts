@@ -1,5 +1,5 @@
 import apiClient from '../client'
-import type { ShareInfoResponse, FolderListResponse, SaveFileParams } from '@/types/api'
+import type { ShareInfoResponse, FolderListResponse, Save115FileParams } from '@/types/api'
 
 export const cloud115Api = {
   getShareInfo(shareCode: string, passcode?: string) {
@@ -14,7 +14,7 @@ export const cloud115Api = {
     })
   },
   
-  saveFile(params: SaveFileParams) {
+  saveFile(params: Save115FileParams) {
     return apiClient.post('/cloud115/save', params)
   },
 }

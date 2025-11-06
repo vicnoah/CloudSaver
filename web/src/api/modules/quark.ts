@@ -1,5 +1,5 @@
 import apiClient from '../client'
-import type { ShareInfoResponse, FolderListResponse, SaveFileParams } from '@/types/api'
+import type { ShareInfoResponse, FolderListResponse, SaveQuarkFileParams } from '@/types/api'
 
 export const quarkApi = {
   getShareInfo(shareCode: string, passcode?: string) {
@@ -14,7 +14,7 @@ export const quarkApi = {
     })
   },
   
-  saveFile(params: SaveFileParams) {
+  saveFile(params: SaveQuarkFileParams) {
     return apiClient.post('/quark/save', params)
   },
 }
