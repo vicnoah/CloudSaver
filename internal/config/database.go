@@ -8,12 +8,17 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	_ "modernc.org/sqlite" // 纯 Go 实现的 SQLite 驱动
 )
 
 // InitDatabase 初始化数据库并执行自动迁移
 func InitDatabase(dbPath string) (*gorm.DB, error) {
-	// 配置 GORM
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{
+	// 使用 modernc.org/sqlite 作为纯 Go 实现的 SQLite 驱动
+	// 配置 GORM，指定使用 modernc 驱动
+	db, err := gorm.Open(sqlite.Dialector{
+		DriverName: "sqlite",
+		DSN:        dbPath,
+	}, &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Warn),
 	})
 	if err != nil {

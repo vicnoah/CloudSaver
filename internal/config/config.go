@@ -86,6 +86,10 @@ func LoadConfig() (*Config, error) {
 	// 环境变量覆盖
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("CLOUDSAVER")
+	// 绑定环境变量到配置项
+	viper.BindEnv("server.port", "CLOUDSAVER_SERVER_PORT")
+	viper.BindEnv("server.mode", "CLOUDSAVER_SERVER_MODE")
+	viper.BindEnv("database.path", "CLOUDSAVER_DATABASE_PATH")
 
 	if err := viper.ReadInConfig(); err != nil {
 		// 配置文件不存在时使用默认值
