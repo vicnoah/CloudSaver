@@ -47,3 +47,12 @@ func (r *UserRepository) Update(user *model.User) error {
 func (r *UserRepository) Delete(uuid string) error {
 	return r.db.Where("uuid = ?", uuid).Delete(&model.User{}).Error
 }
+
+// Count 统计用户数量
+func (r *UserRepository) Count() (int64, error) {
+	var count int64
+	if err := r.db.Model(&model.User{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}

@@ -39,14 +39,8 @@
           />
         </div>
 
-        <div v-if="!isLogin">
-          <input 
-            v-model="form.registerCode"
-            type="number"
-            placeholder="注册码"
-            class="input-base w-full"
-            required
-          />
+        <div v-if="!isLogin" class="text-info text-sm mb-2">
+          提示：第一个注册的用户将自动成为管理员
         </div>
 
         <div v-if="error" class="text-danger text-sm">{{ error }}</div>
@@ -78,7 +72,6 @@ const error = ref('')
 const form = ref({
   username: '',
   password: '',
-  registerCode: 0,
 })
 
 async function handleSubmit() {
@@ -95,7 +88,6 @@ async function handleSubmit() {
       await userStore.register({
         username: form.value.username,
         password: form.value.password,
-        registerCode: form.value.registerCode,
       })
     }
     router.push('/')

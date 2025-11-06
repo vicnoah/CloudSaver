@@ -22,7 +22,6 @@ export interface LoginParams {
 export interface RegisterParams {
   username: string
   password: string
-  registerCode: number
 }
 
 export interface LoginResponse {

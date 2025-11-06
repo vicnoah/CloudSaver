@@ -53,12 +53,16 @@ func main() {
 	settingService := service.NewSettingService(settingRepo)
 	cloud115Service := cloud.NewCloud115Service(settingRepo)
 	quarkService := cloud.NewQuarkService(settingRepo)
+	searchService := service.NewSearchService()
+	doubanService := service.NewDoubanService()
 
 	// 初始化处理器
 	userHandler := handler.NewUserHandler(userService)
 	settingHandler := handler.NewSettingHandler(settingService)
 	cloud115Handler := handler.NewCloud115Handler(cloud115Service)
 	quarkHandler := handler.NewQuarkHandler(quarkService)
+	searchHandler := handler.NewSearchHandler(searchService)
+	doubanHandler := handler.NewDoubanHandler(doubanService)
 
 	// 设置Gin模式
 	gin.SetMode(cfg.Server.Mode)
@@ -95,6 +99,12 @@ func main() {
 			auth.GET("/quark/share-info", quarkHandler.GetShareInfo)
 			auth.GET("/quark/folders", quarkHandler.GetFolderList)
 			auth.POST("/quark/save", quarkHandler.SaveFile)
+
+			// 搜索路由
+			auth.GET("/search", searchHandler.Search)
+
+			// 豆瓣路由
+			auth.GET("/douban/hot", doubanHandler.GetHotList)
 		}
 	}
 

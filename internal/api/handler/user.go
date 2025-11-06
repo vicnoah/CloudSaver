@@ -30,7 +30,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	result, err := h.userService.Register(req.Username, req.Password, req.RegisterCode)
+	result, err := h.userService.Register(req.Username, req.Password)
 	if err != nil {
 		c.JSON(http.StatusOK, response.Error(err.Error()))
 		return

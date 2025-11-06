@@ -30,26 +30,22 @@ func NewUserService(userRepo *repository.UserRepository, settingRepo *repository
 }
 
 // Register 用户注册
-func (s *UserService) Register(username, password string, registerCode int) (*response.UserLoginResponse, error) {
+func (s *UserService) Register(username, password string) (*response.UserLoginResponse, error) {
 	// 检查用户名是否已存在
 	existingUser, _ := s.userRepo.FindByUsername(username)
 	if existingUser != nil {
 		return nil, errors.New("用户名已被使用")
 	}
 
-	// 验证注册码并确定角色
-	globalSetting, err := s.settingRepo.GetGlobalSetting()
+	// 判断是否是第一个用户（自动成为管理员）
+	userCount, err := s.userRepo.Count()
 	if err != nil {
-		return nil, errors.New("获取系统设置失败")
+		return nil, errors.New("查询用户数量失败")
 	}
 
-	var role int
-	if registerCode == globalSetting.AdminUserCode {
-		role = 1 // 管理员
-	} else if registerCode == globalSetting.CommonUserCode {
-		role = 0 // 普通用户
-	} else {
-		return nil, errors.New("注册码无效")
+	role := 0 // 默认普通用户
+	if userCount == 0 {
+		role = 1 // 第一个用户为管理员
 	}
 
 	// 哈希密码
