@@ -103,7 +103,10 @@ func main() {
 	if err != nil {
 		log.Printf("警告: 无法加载前端资源: %v", err)
 	} else {
-		// 处理静态文件
+		// 使用 StaticFS 为 assets 文件提供服务
+		router.StaticFS("/assets", http.FS(distFS))
+		
+		// 处理 SPA 路由
 		router.NoRoute(func(c *gin.Context) {
 			path := c.Request.URL.Path
 
@@ -119,16 +122,51 @@ func main() {
 				filePath = "index.html"
 			}
 
+			// 尝试打开文件
 			file, err := distFS.Open(filePath)
 			if err != nil {
 				// 文件不存在，返回 index.html（SPA路由）
-				c.FileFromFS("index.html", http.FS(distFS))
+				data, err := fs.ReadFile(distFS, "index.html")
+				if err != nil {
+					c.String(http.StatusNotFound, "index.html not found")
+					return
+				}
+				c.Data(http.StatusOK, "text/html; charset=utf-8", data)
 				return
 			}
 			file.Close()
 
-			// 文件存在，直接返回
-			c.FileFromFS(filePath, http.FS(distFS))
+			// 文件存在，读取并返回
+			data, err := fs.ReadFile(distFS, filePath)
+			if err != nil {
+				// 读取失败，返回 index.html
+				data, _ = fs.ReadFile(distFS, "index.html")
+				c.Data(http.StatusOK, "text/html; charset=utf-8", data)
+				return
+			}
+
+			// 根据文件扩展名设置 Content-Type
+			contentType := "text/plain"
+			switch {
+			case strings.HasSuffix(filePath, ".html"):
+				contentType = "text/html; charset=utf-8"
+			case strings.HasSuffix(filePath, ".css"):
+				contentType = "text/css; charset=utf-8"
+			case strings.HasSuffix(filePath, ".js"):
+				contentType = "application/javascript; charset=utf-8"
+			case strings.HasSuffix(filePath, ".json"):
+				contentType = "application/json; charset=utf-8"
+			case strings.HasSuffix(filePath, ".png"):
+				contentType = "image/png"
+			case strings.HasSuffix(filePath, ".jpg"), strings.HasSuffix(filePath, ".jpeg"):
+				contentType = "image/jpeg"
+			case strings.HasSuffix(filePath, ".svg"):
+				contentType = "image/svg+xml"
+			case strings.HasSuffix(filePath, ".ico"):
+				contentType = "image/x-icon"
+			}
+
+			c.Data(http.StatusOK, contentType, data)
 		})
 	}
 
