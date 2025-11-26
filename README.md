@@ -7,7 +7,7 @@
 ![Docker](https://img.shields.io/docker/pulls/jiangrui1994/cloudsaver.svg)
 <a href="https://hellogithub.com/repository/d13663fb959345e7923ecaccc3387571" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=d13663fb959345e7923ecaccc3387571&claim_uid=xP1MT4mSvN6wn5K&theme=small" alt="Featured｜HelloGitHub" /></a>
 
-一个基于 Vue 3 + Express 的网盘资源搜索与转存工具，支持响应式布局，移动端与PC完美适配，可通过 Docker 一键部署。
+一个基于 Go + Gin + Vue 3 的网盘资源搜索与转存工具，支持响应式布局，移动端与PC完美适配，单一二进制部署。
 
 官方Telegram群组：[https://t.me/cloud_saver](https://t.me/cloud_saver)
 
@@ -121,38 +121,31 @@ A: 唯一可信方案：通过官方仓库代码+自主服务器部署，全程�
 
 ## 技术栈
 
-### 前端
-
-- 核心框架
-  - Vue 3
-  - TypeScript
-  - Vite
-- 状态管理
-  - Pinia
-- 路由管理
-  - Vue Router
-- UI 组件库
-  - Element Plus (PC)
-  - Vant (Mobile)
-- 工具库
-  - Axios
-
 ### 后端
 
-- 运行环境
-  - Node.js
-  - Express
-- 数据存储
-  - SQLite3
+- 语言：Go 1.22+
+- Web 框架：Gin
+- ORM：GORM
+- 数据库：SQLite (modernc.org/sqlite)
+- 认证：JWT
+- 配置：Viper
+
+### 前端
+
+- 核心框架：Vue 3 + TypeScript + Vite
+- CSS 框架：UnoCSS
+- 状态管理：Pinia
+- 路由管理：Vue Router
+- 包管理：pnpm
 
 ## 环境要求
 
-- Node.js >= 18.x
-- pnpm >= 8.x (推荐)
+- Go >= 1.22
+- pnpm >= 8.x (前端开发)
 
 ## 快速开始
 
-### 开发环境
+### 编译运行
 
 1. 克隆项目
 
@@ -161,42 +154,50 @@ git clone https://github.com/jiangrui1994/CloudSaver.git
 cd CloudSaver
 ```
 
+2. 编译程序
+
+```bash
+go build -tags modernc -o bin/cloudsaver cmd/server/main.go
+```
+
+3. 运行程序
+
+```bash
+# 默认端口 8080
+./bin/cloudsaver
+
+# 或使用自定义端口
+CLOUDSAVER_SERVER_PORT=8888 ./bin/cloudsaver
+```
+
+### 前端开发
+
+1. 进入前端目录
+
+```bash
+cd web
+```
+
 2. 安装依赖
 
 ```bash
 pnpm install
 ```
 
-3. 配置环境变量
-
-```bash
-cp ./backend/.env.example ./backend/.env
-```
-
-根据 `.env.example` 文件说明配置必要的环境变量。
-
-4. 启动开发服务器
+3. 启动开发服务器
 
 ```bash
 pnpm dev
 ```
 
-### 生产环境部署
-
-1. 构建前端
+4. 构建前端（嵌入到 Go 程序）
 
 ```bash
-pnpm build:frontend
-```
-
-2. 构建后端
-
-```bash
-cd backend
 pnpm build
+cp -r dist/* ../embed/dist/
+cd ..
+go build -tags modernc -o bin/cloudsaver cmd/server/main.go
 ```
-
-3. 启动服务
 
 ```bash
 pnpm start
@@ -212,6 +213,8 @@ pnpm start
 - github托管：
   - `ghcr.io/jiangrui1994/cloudsaver:latest` 稳定版
   - `ghcr.io/jiangrui1994/cloudsaver:test` 测试版 （包含最新功能和bug修复，但可能不如稳定版稳定）
+
+❗ **重要说明**: 从 v1.0.0 版本开始，项目已重构为 Go 语言实现。旧版本 Docker 镜像不再更新。
 
 #### 单容器部署
 
@@ -273,19 +276,23 @@ services:
     restart: unless-stopped
 ```
 
-#### /app/config 目录说明
+#### /app/data 目录说明
 
-- `env` 文件：包含后端环境变量配置
+Go 版本的数据存储目录：
+- `cloudsaver.db`: SQLite 数据库文件
+
+配置通过环境变量设置：
 
 ```bash
-# JWT配置
-JWT_SECRET=your_jwt_secret_here
+# 服务器端口
+CLOUDSAVER_SERVER_PORT=8080
 
-# Telegram配置
-TELEGRAM_BASE_URL=https://t.me/s
+# JWT 配置
+CLOUDSAVER_JWT_SECRET=your-secret-key
+CLOUDSAVER_JWT_EXPIREHOURS=168
 
-# Telegram频道配置(0.3.0及之后版本无效)
-TELE_CHANNELS=[{"id":"xxxx","name":"xxxx资源分享"}]
+# 数据库路径
+CLOUDSAVER_DATABASE_PATH=/app/data/cloudsaver.db
 ```
 
 运行：
@@ -298,10 +305,11 @@ docker-compose up -d
 
 ## 注意事项
 
-1. 资源搜索需要配置代理环境
-2. 默认注册码
+1. 默认注册码
    - 管理员：230713
    - 普通用户：9527
+2. 首次运行会自动创建数据库和默认设置
+3. 请在生产环境中修改 JWT Secret
 
 ## 联系方式
 

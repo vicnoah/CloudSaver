@@ -1,0 +1,18 @@
+/* 公共样式 */
+:root {
+  --color-primary: #409EFF;
+  --color-success: #67C23A;
+  --color-warning: #E6A23C;
+  --color-danger: #F56C6C;
+  --color-info: #909399;
+  --color-text-primary: #303133;
+  --color-text-regular: #606266;
+  --color-text-secondary: #909399;
+  --color-border: #DCDFE6;
+  --color-bg: #F5F7FA;
+}
+
+body {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+}
